@@ -8,8 +8,9 @@ import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 
 import static java.nio.channels.SelectionKey.OP_ACCEPT;
@@ -20,8 +21,12 @@ public class NioCalculatorServer {
     private ServerSocketChannel serverChannel;
     private Selector selector;
     private ByteBuffer buffer;
+    List<ClientSoket> list;
+    private static int clientCount = 0;
+
 
     public NioCalculatorServer() throws IOException {
+        list = new ArrayList<>();
         buffer = ByteBuffer.allocate(256);
         serverChannel = ServerSocketChannel.open();
         selector = Selector.open();
@@ -39,7 +44,9 @@ public class NioCalculatorServer {
                 }
                 if (key.isReadable()) {
                     handleRead(key);
+
                 }
+
                 keyIterator.remove();
             }
         }
@@ -47,29 +54,53 @@ public class NioCalculatorServer {
 
     private void handleRead(SelectionKey key) throws IOException {
         SocketChannel channel = (SocketChannel) key.channel();
+        StringBuilder msg = new StringBuilder();
+        String name = "";
+        for (ClientSoket clientSoket : list) {
+            if (clientSoket.getChannel().equals(channel)) {
+                name = clientSoket.getName();
+                break;
+            }
+        }
         int read = channel.read(buffer);
         if (read == -1) {
-            return;
-        }
-        buffer.flip();
-        StringBuilder msg = new StringBuilder();
-        while (buffer.hasRemaining()) {
-            msg.append((char) buffer.get());
-        }
-        buffer.clear();
-        System.out.println("received: " + msg);
-        String[] args = msg.toString().trim().split(" ");
-        System.out.println(Arrays.toString(args));
-        int sum = Integer.parseInt(args[0]) + Integer.parseInt(args[1]);
-        System.out.println(sum);
-        channel.write(ByteBuffer.wrap((sum + "\n").getBytes(StandardCharsets.UTF_8)));
+                    return;
+                }
+
+            buffer.flip();
+            while (buffer.hasRemaining()) {
+                msg.append((char) buffer.get());
+            }
+
+           String message = new String(msg);
+            if(message.startsWith("lm")) {
+                String[] token = message.split(" ", 3);
+                for(ClientSoket client : list) {
+                    if(client.getName().equals(token[1])) {
+                        client.getChannel().write(ByteBuffer.wrap((name + ": " + token[2]).
+                                getBytes(StandardCharsets.UTF_8)));
+                        break;
+                    }
+                }
+            }
+            else {
+                for (ClientSoket clientSoket : list) {
+                    clientSoket.getChannel().write(ByteBuffer.wrap((name + ": " + msg.toString()
+                            + System.lineSeparator()).getBytes(StandardCharsets.UTF_8)));
+                }
+            }
+            System.out.print(msg.toString());
+            buffer.clear();
     }
+
 
     private void handleAccept(SelectionKey key) throws IOException {
         ServerSocketChannel channel = (ServerSocketChannel) key.channel();
         SocketChannel socketChannel = channel.accept();
+        clientCount++;
+        list.add(new ClientSoket("Client#" + clientCount, socketChannel));
         socketChannel.write(ByteBuffer.wrap(
-                "Hello to calc server!\nInput two args for calculate sum:\n".getBytes(StandardCharsets.UTF_8)));
+                "Hello to chat server!".getBytes(StandardCharsets.UTF_8)));
         socketChannel.configureBlocking(false);
         socketChannel.register(selector, OP_READ);
     }
