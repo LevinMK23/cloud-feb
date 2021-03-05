@@ -1,16 +1,15 @@
 package streamApi;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Optional;
 import java.util.stream.Stream;
-
-import com.sun.tools.javac.util.List;
 
 public class Example2 {
 
     public static void main(String[] args) {
 
-        List.of("user1", "iser2", "user3");
+        Arrays.asList("user1", "iser2", "user3");
         Integer result = Stream.of(1, 2, 3, 4, 5)
                 .reduce(0, Integer::sum);
         Integer multiply = Stream.of(1, 2, 3, 4, 5)

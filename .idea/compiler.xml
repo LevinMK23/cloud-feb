@@ -6,7 +6,9 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
-        <module name="cloud-feb" />
+        <module name="core-feb" />
+        <module name="server-feb" />
+        <module name="client-feb" />
       </profile>
     </annotationProcessing>
   </component>

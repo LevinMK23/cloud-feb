@@ -1,7 +1,4 @@
-package netty;
-
 import java.util.Enumeration;
-import java.util.concurrent.ConcurrentLinkedDeque;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
